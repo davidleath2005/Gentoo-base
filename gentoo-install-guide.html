@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gentoo AMD64 Installation Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+  :root {
+    --bg:         #0d1117;
+    --bg-card:    #161b22;
+    --bg-code:    #0d1117;
+    --bg-note:    #1c2333;
+    --bg-warn:    #261a0e;
+    --bg-tip:     #0d2213;
+    --border:     #30363d;
+    --border-accent: #58a6ff;
+    --text:       #c9d1d9;
+    --text-dim:   #8b949e;
+    --text-head:  #f0f6fc;
+    --accent:     #58a6ff;
+    --accent2:    #3fb950;
+    --warn:       #e3b341;
+    --danger:     #f85149;
+    --purple:     #bc8cff;
+    --teal:       #39d353;
+    --nav-w:      260px;
+    --mono:       'IBM Plex Mono', 'Fira Code', monospace;
+    --sans:       'IBM Plex Sans', system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.7;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── SIDEBAR NAV ── */
+  #sidebar {
+    width: var(--nav-w);
+    flex-shrink: 0;
+    background: var(--bg-card);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 0 0 2rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .sidebar-logo {
+    padding: 1.4rem 1.2rem 1rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.5rem;
+  }
+  .sidebar-logo .logo-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.3;
+  }
+  .sidebar-logo .logo-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 3px;
+    font-family: var(--mono);
+  }
+
+  .nav-section-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 1rem 1.2rem 0.3rem;
+  }
+
+  #sidebar nav a {
+    display: block;
+    padding: 0.28rem 1.2rem 0.28rem 1.5rem;
+    font-size: 13px;
+    color: var(--text-dim);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    line-height: 1.5;
+  }
+  #sidebar nav a:hover {
+    color: var(--text);
+    background: rgba(88,166,255,0.06);
+  }
+  #sidebar nav a.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(88,166,255,0.08);
+  }
+  #sidebar nav a.sub {
+    padding-left: 2.2rem;
+    font-size: 12px;
+  }
+
+  /* ── MAIN CONTENT ── */
+  #main {
+    flex: 1;
+    min-width: 0;
+    padding: 3rem 4rem 6rem;
+    max-width: 860px;
+  }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-head);
+    line-height: 1.2;
+    margin-bottom: 0.6rem;
+  }
+  .page-header p {
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  .target-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    padding: 3px 9px;
+    border-radius: 4px;
+    border: 1px solid;
+  }
+  .badge-blue  { background: rgba(88,166,255,0.1);  border-color: rgba(88,166,255,0.35); color: var(--accent); }
+  .badge-green { background: rgba(63,185,80,0.1);   border-color: rgba(63,185,80,0.35);  color: var(--accent2); }
+  .badge-purple{ background: rgba(188,140,255,0.1); border-color: rgba(188,140,255,0.35);color: var(--purple); }
+
+  /* ── SECTIONS ── */
+  section {
+    margin-bottom: 3.5rem;
+    scroll-margin-top: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-head);
+    padding: 0.6rem 0 0.6rem 0.9rem;
+    border-left: 3px solid var(--accent);
+    margin-bottom: 1.5rem;
+    line-height: 1.3;
+  }
+  h2 .step-num {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 1px;
+    letter-spacing: 0.06em;
+  }
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-head);
+    margin: 1.8rem 0 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  h3::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent2);
+    flex-shrink: 0;
+  }
+
+  h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    margin: 1.2rem 0 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-size: 11px;
+  }
+
+  p { margin-bottom: 0.8rem; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── CODE ── */
+  code {
+    font-family: var(--mono);
+    font-size: 0.875em;
+    background: var(--bg-note);
+    color: #79c0ff;
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.1rem 1.3rem;
+    overflow-x: auto;
+    margin: 0.8rem 0 1rem;
+    position: relative;
+  }
+  pre code {
+    font-family: var(--mono);
+    font-size: 13px;
+    background: none;
+    color: var(--text);
+    padding: 0;
+    border: none;
+    line-height: 1.65;
+    display: block;
+  }
+
+  /* syntax tints inside pre */
+  pre code .cm  { color: #8b949e; font-style: italic; } /* comment */
+  pre code .kw  { color: #ff7b72; }  /* keyword / command */
+  pre code .st  { color: #a5d6ff; }  /* string */
+  pre code .vr  { color: var(--purple); } /* variable */
+  pre code .ph  { color: var(--warn); font-style: italic; } /* placeholder */
+  pre code .op  { color: var(--accent2); } /* operator */
+
+  .pre-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    padding: 4px 12px;
+    display: inline-block;
+    margin-bottom: -1px;
+  }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    margin: 0.8rem 0 1rem;
+    display: flex;
+    gap: 0.7rem;
+    font-size: 14px;
+    line-height: 1.6;
+    border: 1px solid;
+  }
+  .callout .icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+  .callout-note  { background: var(--bg-note); border-color: rgba(88,166,255,0.3); color: #a5c8ef; }
+  .callout-warn  { background: var(--bg-warn); border-color: rgba(227,179,65,0.35); color: #d5a94a; }
+  .callout-tip   { background: var(--bg-tip);  border-color: rgba(63,185,80,0.3);  color: #7bd37e; }
+  .callout-danger{ background: #1d0f0f;        border-color: rgba(248,81,73,0.35); color: #f28d8d; }
+
+  .callout code { background: rgba(255,255,255,0.07); color: inherit; }
+
+  /* ── TABLES ── */
+  .table-wrap { overflow-x: auto; margin: 0.8rem 0 1rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  th {
+    background: var(--bg-note);
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 0.55rem 0.9rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 0.5rem 0.9rem;
+    border-bottom: 1px solid rgba(48,54,61,0.6);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  td code { font-size: 12px; }
+
+  /* ── IMPROVEMENT TAGS ── */
+  .improvement {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 1px 7px;
+    border-radius: 3px;
+    background: rgba(188,140,255,0.12);
+    border: 1px solid rgba(188,140,255,0.3);
+    color: var(--purple);
+    vertical-align: middle;
+    margin-left: 6px;
+  }
+
+  /* ── CHECKLIST ── */
+  .checklist { list-style: none; padding: 0; margin: 0.5rem 0; }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 0.3rem 0;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .checklist li::before {
+    content: '☐';
+    color: var(--text-dim);
+    flex-shrink: 0;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+
+  /* ── HORIZONTAL RULE ── */
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    #sidebar { display: none; }
+    #main { padding: 2rem 1.5rem 4rem; max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════  SIDEBAR  ═══════════════════════════ -->
+<aside id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-title">Gentoo Install<br>Guide · AMD64</div>
+    <div class="logo-sub">OpenRC · EFI Stub · NVMe</div>
+  </div>
+  <nav>
+    <div class="nav-section-label">Installation</div>
+    <a href="#s1">1 · Preparation</a>
+    <a href="#s2">2 · Disk Partitioning</a>
+    <a href="#s3">3 · Stage 3 Tarball</a>
+    <a href="#s4">4 · Portage (make.conf)</a>
+    <a href="#s5">5 · Chroot</a>
+    <a href="#s6">6 · Portage Sync &amp; Profile</a>
+    <a href="#s7">7 · Timezone, Locale &amp; Hostname</a>
+    <a href="#s8">8 · Kernel &amp; Boot</a>
+    <a href="#s9">9 · fstab</a>
+    <a href="#s10">10 · Networking &amp; Services</a>
+    <a href="#s11">11 · Users &amp; Final Steps</a>
+    <a href="#s12">12 · Reboot</a>
+    <div class="nav-section-label">Appendices</div>
+    <a href="#appA">A · Troubleshooting</a>
+    <a href="#appB">B · OpenRC Reference</a>
+    <a href="#appC">C · Updating the Kernel</a>
+  </nav>
+</aside>
+
+<!-- ═══════════════════════════  MAIN  ═══════════════════════════ -->
+<main id="main">
+
+  <div class="page-header">
+    <h1>Gentoo AMD64 Installation Guide</h1>
+    <p>OpenRC · EFI Stub (UEFI fallback path) · Distribution kernel · NVMe · UUID fstab.<br>
+    Every command block is copy-paste ready unless a placeholder like <code>YOUR-ROOT-UUID-HERE</code> is shown.</p>
+    <div class="target-badges">
+      <span class="badge badge-blue">AMD64 (x86_64)</span>
+      <span class="badge badge-green">OpenRC</span>
+      <span class="badge badge-blue">EFI Stub · No bootloader</span>
+      <span class="badge badge-purple">Distribution Kernel</span>
+      <span class="badge badge-green">NVMe</span>
+    </div>
+    <div class="callout callout-warn" style="margin-top:1.2rem">
+      <span class="icon">⚠</span>
+      <div><strong>Init system: OpenRC only.</strong> systemd is never used or referenced. All service management uses <code>rc-update</code> and <code>rc-service</code>.</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ SECTION 1 ══════════════════════ -->
+  <section id="s1">
+    <h2><span class="step-num">STEP 01</span>Preparation</h2>
+
+    <h3>1.1 Download the Minimal Install ISO</h3>
+    <p>Browse the official autobuilds directory for the current AMD64 minimal ISO:</p>
+    <pre><code>https://distfiles.gentoo.org/releases/amd64/autobuilds/current-install-amd64-minimal/</code></pre>
+    <p>Download the file named <code>install-amd64-minimal-&lt;date&gt;.iso</code>. A <code>.iso.asc</code> GPG signature and <code>.iso.sha256</code> checksum are also available alongside it for verification.</p>
+
+    <h3>1.2 Write the ISO to a USB Drive</h3>
+    <p>Replace <code>/dev/sdX</code> with your USB device — confirm with <code>lsblk</code> first and <strong>never</strong> write to your target NVMe.</p>
+    <pre><code>dd if=install-amd64-minimal-&lt;date&gt;.iso of=/dev/sdX bs=4M status=progress oflag=sync</code></pre>
+
+    <h3>1.3 Boot into the Live Environment</h3>
+    <p>Insert the USB drive, reboot, and enter your firmware boot menu (usually <code>F12</code>, <code>F2</code>, <code>Del</code>, or <code>Esc</code>). Select the Gentoo USB drive and press <strong>Enter</strong> at the boot prompt.</p>
+
+    <h3>1.4 Verify UEFI Mode</h3>
+    <p>EFI Stub boot requires UEFI. Confirm the environment booted in UEFI mode:</p>
+    <pre><code>ls /sys/firmware/efi</code></pre>
+    <p>If the directory exists and contains files such as <code>efivars</code>, you are in UEFI mode. If not, re-check your firmware settings. Ensure Secure Boot is <strong>disabled</strong> — unsigned EFI stub images will not boot with Secure Boot active unless you enroll your own signing keys.</p>
+
+    <h3>1.5 Set Up Networking</h3>
+    <h4>Wired (DHCP — most common)</h4>
+    <p>The live environment starts DHCP automatically on most hardware. Verify connectivity:</p>
+    <pre><code>ping -c 3 gentoo.org</code></pre>
+    <p>If that fails, bring the interface up manually. Note that modern Gentoo live media uses predictable interface names such as <code>enp1s0</code>, <code>eno0</code>, or <code>enp5s0</code> — use <code>ip link</code> to find the exact name on your system:</p>
+    <pre><code>ip link
+ip link set enp1s0 up   <span class="cm"># replace enp1s0 with your interface name</span>
+dhcpcd enp1s0</code></pre>
+
+    <h4>Wireless</h4>
+    <pre><code>iwconfig                                    <span class="cm"># list wireless interfaces</span>
+iwlist wlp9s0 scan | grep ESSID             <span class="cm"># scan (replace wlp9s0 with your interface)</span>
+wpa_passphrase "YourSSID" "YourPass" > /tmp/wpa.conf
+wpa_supplicant -B -i wlp9s0 -c /tmp/wpa.conf
+dhcpcd wlp9s0</code></pre>
+
+    <h3>1.6 Sync System Clock</h3>
+    <p>An accurate clock is required for package signature verification:</p>
+    <pre><code>chronyd -q 'server pool.ntp.org iburst'   <span class="cm"># preferred</span>
+<span class="cm"># or, as a fallback:</span>
+ntpdate pool.ntp.org
+
+date  <span class="cm"># confirm the result</span></code></pre>
+  </section>
+
+  <!-- ══════════════════════ SECTION 2 ══════════════════════ -->
+  <section id="s2">
+    <h2><span class="step-num">STEP 02</span>Disk Partitioning (NVMe)</h2>
+
+    <div class="callout callout-note">
+      <span class="icon">ℹ</span>
+      <div>Target disk: <code>/dev/nvme0n1</code>. If you have multiple drives, confirm you are targeting the correct one first: <code>lsblk</code></div>
+    </div>
+
+    <h3>2.1 Partition Layout</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Partition</th><th>Size</th><th>Type</th><th>Filesystem</th><th>Mount Point</th></tr></thead>
+      <tbody>
+        <tr><td><code>/dev/nvme0n1p1</code></td><td>512 MiB</td><td>EFI System</td><td>FAT32</td><td><code>/efi</code></td></tr>
+        <tr><td><code>/dev/nvme0n1p2</code></td><td>8 GiB</td><td>Linux swap</td><td>swap</td><td>—</td></tr>
+        <tr><td><code>/dev/nvme0n1p3</code></td><td>Remainder</td><td>Linux filesystem</td><td>ext4</td><td><code>/</code></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>2.2 Create the GPT Partition Table</h3>
+    <pre><code>fdisk /dev/nvme0n1</code></pre>
+    <p>Inside <code>fdisk</code> (lines starting with <code>#</code> are comments, not commands to type):</p>
+    <pre><code><span class="cm"># New GPT disklabel — wipes all existing data</span>
+g
+
+<span class="cm"># Partition 1 — EFI System</span>
+n
+1
+[Enter]
++512M
+t
+1        <span class="cm"># type 1 = EFI System</span>
+
+<span class="cm"># Partition 2 — Swap</span>
+n
+2
+[Enter]
++8G
+t
+2
+19       <span class="cm"># type 19 = Linux swap</span>
+
+<span class="cm"># Partition 3 — Root (uses remaining space)</span>
+n
+3
+[Enter]
+[Enter]
+
+p        <span class="cm"># preview layout before writing</span>
+w        <span class="cm"># write and exit</span></code></pre>
+
+    <h3>2.3 Format the Partitions</h3>
+    <pre><code>mkfs.fat -F 32 /dev/nvme0n1p1   <span class="cm"># EFI must be FAT32</span>
+mkswap /dev/nvme0n1p2
+mkfs.ext4 /dev/nvme0n1p3</code></pre>
+
+    <h3>2.4 Activate Swap and Mount Filesystems</h3>
+    <pre><code>swapon /dev/nvme0n1p2
+mount /dev/nvme0n1p3 /mnt/gentoo
+mkdir -p /mnt/gentoo/efi
+mount /dev/nvme0n1p1 /mnt/gentoo/efi</code></pre>
+  </section>
+
+  <!-- ══════════════════════ SECTION 3 ══════════════════════ -->
+  <section id="s3">
+    <h2><span class="step-num">STEP 03</span>Stage 3 Tarball</h2>
+
+    <h3>3.1 Download the Stage 3 (OpenRC)</h3>
+    <p>Browse the current autobuilds directory for the latest OpenRC stage3:</p>
+    <pre><code>https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-openrc/</code></pre>
+    <div class="callout callout-warn">
+      <span class="icon">⚠</span>
+      <div>Download the <strong>OpenRC</strong> stage3. The filename contains <code>openrc</code> — e.g. <code>stage3-amd64-openrc-&lt;date&gt;T&lt;time&gt;Z.tar.xz</code>. Do <strong>not</strong> download the <code>systemd</code> variant.</div>
+    </div>
+    <pre><code>cd /mnt/gentoo
+wget https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-openrc/stage3-amd64-openrc-<span class="ph">&lt;date&gt;T&lt;time&gt;Z</span>.tar.xz</code></pre>
+    <p>Or browse interactively with <code>links</code>:</p>
+    <pre><code>links https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-openrc/</code></pre>
+
+    <h3>3.2 Verify the Download <span class="improvement">handbook</span></h3>
+    <p>The handbook provides <code>.sha256</code> checksum files alongside each tarball. Download and verify before extracting:</p>
+    <pre><code>wget https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-openrc/stage3-amd64-openrc-<span class="ph">&lt;date&gt;T&lt;time&gt;Z</span>.tar.xz.sha256
+
+<span class="cm"># Verify — output should end with "OK"</span>
+sha256sum --check stage3-amd64-openrc-<span class="ph">&lt;date&gt;T&lt;time&gt;Z</span>.tar.xz.sha256</code></pre>
+    <div class="callout callout-tip">
+      <span class="icon">💡</span>
+      <div>For the strongest verification, also download the <code>.asc</code> GPG signature and verify it against the Gentoo release engineering key. See the <a href="https://wiki.gentoo.org/wiki/Handbook:AMD64/Installation/Stage" style="color:var(--accent2)">handbook's stage page</a> for details.</div>
+    </div>
+
+    <h3>3.3 Extract the Stage 3</h3>
+    <pre><code>tar xpvf stage3-*.tar.xz --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo</code></pre>
+    <div class="callout callout-note">
+      <span class="icon">ℹ</span>
+      <div><strong>Flag meanings:</strong> <code>x</code> extract · <code>p</code> preserve permissions · <code>v</code> verbose · <code>f</code> file · <code>--xattrs-include='*.*'</code> preserve extended attributes (required for capabilities) · <code>--numeric-owner</code> preserve UID/GID exactly · <code>-C /mnt/gentoo</code> extract directly to the mount point regardless of current directory</div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ SECTION 4 ══════════════════════ -->
+  <section id="s4">
+    <h2><span class="step-num">STEP 04</span>Configure Portage (make.conf)</h2>
+
+    <pre><code>nano /mnt/gentoo/etc/portage/make.conf</code></pre>
+    <p>Replace the contents with the following. Adjust <code>VIDEO_CARDS</code> for your GPU:</p>
+
+    <div class="pre-label">make.conf</div>
+    <pre><code><span class="cm"># Compiler flags — -march=native optimises for this exact CPU</span>
+COMMON_FLAGS="-march=native -O2 -pipe"
+CFLAGS="${COMMON_FLAGS}"
+CXXFLAGS="${COMMON_FLAGS}"
+FCFLAGS="${COMMON_FLAGS}"
+FFLAGS="${COMMON_FLAGS}"
+
+<span class="cm"># Parallel build jobs.  -l$(nproc) caps load average to prevent lockups.</span>
+MAKEOPTS="-j$(nproc) -l$(nproc)"
+
+<span class="cm"># Accept all licenses</span>
+ACCEPT_LICENSE="*"
+
+<span class="cm"># CPU feature flags — set correctly after running cpuid2cpuflags (see §4.2)</span>
+<span class="cm"># CPU_FLAGS_X86="aes avx avx2 f16c fma3 mmx mmxext pclmul popcnt rdrand sse sse2 sse3 sse4_1 sse4_2 ssse3"</span>
+
+<span class="cm"># Video card drivers:</span>
+<span class="cm">#   Intel iGPU:           intel</span>
+<span class="cm">#   AMD/Radeon:           radeonsi (or amdgpu)</span>
+<span class="cm">#   NVIDIA open-source:   nouveau</span>
+<span class="cm">#   NVIDIA proprietary:   nvidia  (requires separate setup)</span>
+<span class="cm">#   None / virtual:       -* </span>
+VIDEO_CARDS="intel"
+
+<span class="cm"># Optional: binary package host (saves compilation time)</span>
+<span class="cm"># FEATURES="getbinpkg"</span>
+<span class="cm"># BINPKG_FORMAT="gpkg"</span></code></pre>
+
+    <h3>4.1 Select Mirrors</h3>
+    <pre><code><span class="cm"># Install mirrorselect if not already available</span>
+emerge --ask app-portage/mirrorselect
+
+<span class="cm"># Pick geographically close mirrors interactively</span>
+mirrorselect -i -o >> /mnt/gentoo/etc/portage/make.conf</code></pre>
+
+    <h3>4.2 Set CPU_FLAGS_X86 <span class="improvement">handbook</span></h3>
+    <p>The handbook recommends explicitly setting <code>CPU_FLAGS_X86</code> for hand-written assembly intrinsics. This is separate from <code>-march=native</code>. After entering the chroot (§5), run:</p>
+    <pre><code>emerge --ask app-portage/cpuid2cpuflags
+cpuid2cpuflags</code></pre>
+    <p>The output will be something like <code>CPU_FLAGS_X86: aes avx avx2 ...</code> — paste that line into <code>/etc/portage/make.conf</code>.</p>
+
+    <h3>4.3 Optional: Binary Package Host <span class="improvement">handbook</span></h3>
+    <p>Since late 2023 Gentoo provides an official binary package host for amd64. Enabling it dramatically reduces compilation time for large packages like GCC, LLVM, and Qt. To use it, uncomment these lines in <code>make.conf</code>:</p>
+    <pre><code>FEATURES="getbinpkg"
+BINPKG_FORMAT="gpkg"</code></pre>
+    <div class="callout callout-tip">
+      <span class="icon">💡</span>
+      <div>Binary packages are pre-built with a baseline <code>x86-64</code> tuning. Packages that cannot be served from binaries will still be compiled locally. You can always disable this later and compile everything from source.</div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ SECTION 5 ══════════════════════ -->
+  <section id="s5">
+    <h2><span class="step-num">STEP 05</span>Chroot</h2>
+
+    <h3>5.1 Copy DNS Configuration</h3>
+    <pre><code>cp --dereference /etc/resolv.conf /mnt/gentoo/etc/</code></pre>
+
+    <h3>5.2 Mount Necessary Filesystems</h3>
+    <pre><code>mount --types proc /proc /mnt/gentoo/proc
+mount --rbind /sys /mnt/gentoo/sys && mount --make-rslave /mnt/gentoo/sys
+mount --rbind /dev /mnt/gentoo/dev && mount --make-rslave /mnt/gentoo/dev
+mount --bind /run /mnt/gentoo/run && mount --make-slave /mnt/gentoo/run</code></pre>
+
+    <h3>5.3 Enter the Chroot</h3>
+    <pre><code>chroot /mnt/gentoo /bin/bash
+source /etc/profile
+export PS1="(chroot) ${PS1}"</code></pre>
+    <p>Your prompt should now show <code>(chroot)</code>.</p>
+
+    <h3>5.4 Mount the EFI Partition Inside the Chroot</h3>
+    <pre><code>mount /dev/nvme0n1p1 /efi</code></pre>
+    <div class="callout callout-note">
+      <span class="icon">ℹ</span>
+      <div>The EFI partition was mounted at <code>/mnt/gentoo/efi</code> from outside the chroot. This command re-registers it inside the chroot's mount namespace so <code>installkernel</code> can write to <code>/efi</code> correctly.</div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ SECTION 6 ══════════════════════ -->
+  <section id="s6">
+    <h2><span class="step-num">STEP 06</span>Portage Sync &amp; Profile</h2>
+
+    <h3>6.1 Sync the Portage Tree</h3>
+    <pre><code><span class="cm"># Fast initial snapshot (recommended for first sync)</span>
+emerge-webrsync
+
+<span class="cm"># Then pull the latest incremental updates</span>
+emerge --sync</code></pre>
+    <p>If Portage shows news items, read them — they often contain migration instructions:</p>
+    <pre><code>eselect news list
+eselect news read</code></pre>
+
+    <h3>6.2 Install cpuid2cpuflags <span class="improvement">handbook</span></h3>
+    <p>Now is a good time to install and run this tool so you can set <code>CPU_FLAGS_X86</code> before building anything:</p>
+    <pre><code>emerge --ask app-portage/cpuid2cpuflags
+cpuid2cpuflags</code></pre>
+    <p>Add the output to <code>/etc/portage/make.conf</code>, for example:</p>
+    <pre><code>echo 'CPU_FLAGS_X86="aes avx avx2 f16c fma3 mmx mmxext pclmul popcnt rdrand sse sse2 sse3 sse4_1 sse4_2 ssse3"' >> /etc/portage/make.conf</code></pre>
+
+    <h3>6.3 Select a Profile</h3>
+    <pre><code>eselect profile list</code></pre>
+    <div class="callout callout-warn">
+      <span class="icon">⚠</span>
+      <div>Select a profile that does <strong>not</strong> contain <code>systemd</code> in the name. The plain <code>default/linux/amd64/23.0</code> profile uses OpenRC. Match the profile version to the stage3 you downloaded.</div>
+    </div>
+    <pre><code>eselect profile set 1   <span class="cm"># adjust the number to match your list</span>
+eselect profile show    <span class="cm"># verify</span></code></pre>
+
+    <h3>6.4 Update the @world Set</h3>
+    <p>Rebuild any packages whose USE flags changed with the new profile. This may take a while.</p>
+    <pre><code>emerge --ask --verbose --update --deep --newuse @world</code></pre>
+  </section>
+
+  <!-- ══════════════════════ SECTION 7 ══════════════════════ -->
+  <section id="s7">
+    <h2><span class="step-num">STEP 07</span>Timezone, Locale &amp; Hostname</h2>
+
+    <h3>7.1 Set the Timezone</h3>
+    <pre><code>echo "America/New_York" > /etc/timezone   <span class="cm"># replace with your zone</span>
+emerge --config sys-libs/timezone-data</code></pre>
+    <p>Full timezone list: <code>/usr/share/zoneinfo/</code> — e.g. <code>Europe/London</code>, <code>Asia/Tokyo</code>, <code>Australia/Sydney</code>.</p>
+
+    <h3>7.2 Configure Locales</h3>
+    <pre><code>nano /etc/locale.gen</code></pre>
+    <p>Uncomment the locales you need, for example:</p>
+    <pre><code>en_US ISO-8859-1
+en_US.UTF-8 UTF-8</code></pre>
+    <pre><code>locale-gen
+eselect locale list
+eselect locale set 5   <span class="cm"># adjust to the en_US.utf8 entry in your list</span></code></pre>
+    <p>Set the locale explicitly for extra robustness:</p>
+    <pre><code>cat > /etc/env.d/02locale << 'EOF'
+LANG="en_US.UTF-8"
+LC_COLLATE="C.UTF-8"
+EOF</code></pre>
+    <p>Reload the environment:</p>
+    <pre><code>env-update && source /etc/profile && export PS1="(chroot) ${PS1}"</code></pre>
+
+    <h3>7.3 Set the Hostname</h3>
+    <pre><code>nano /etc/conf.d/hostname</code></pre>
+    <pre><code>hostname="gentoo"   <span class="cm"># change to your preferred name</span></code></pre>
+
+    <h3>7.4 Configure /etc/hosts <span class="improvement">handbook</span></h3>
+    <p>The handbook requires <code>/etc/hosts</code> to be set so the hostname resolves locally. This prevents startup warnings from tools that try to resolve the hostname:</p>
+    <pre><code>nano /etc/hosts</code></pre>
+    <div class="pre-label">/etc/hosts</div>
+    <pre><code>127.0.0.1   localhost
+::1         localhost
+127.0.1.1   gentoo.localdomain gentoo   <span class="cm"># replace "gentoo" with your hostname</span></code></pre>
+  </section>
+
+  <!-- ══════════════════════ SECTION 8 ══════════════════════ -->
+  <section id="s8">
+    <h2><span class="step-num">STEP 08</span>Kernel Installation (Distribution Kernel · EFI Stub · Fallback Boot)</h2>
+
+    <p>This section installs the Gentoo distribution kernel (<code>sys-kernel/gentoo-kernel</code>) and boots it directly via UEFI using the <strong>UEFI fallback boot path</strong>. The firmware automatically boots any EFI image placed at <code>/EFI/BOOT/BOOTX64.EFI</code> on the EFI partition — no bootloader, no <code>efibootmgr</code>, no boot entries to manage.</p>
+    <p>This approach is chosen for <strong>simplicity of kernel updates</strong>: after each <code>emerge</code>, a single <code>cp</code> is all that is needed.</p>
+
+    <h3>8.1 Get the Root Partition UUID</h3>
+    <p>The root UUID must be compiled into the kernel command line. Get it now, before building anything:</p>
+    <pre><code>blkid /dev/nvme0n1p3</code></pre>
+    <p>Example output:</p>
+    <pre><code>/dev/nvme0n1p3: UUID="a1b2c3d4-e5f6-7890-abcd-ef1234567890" BLOCK_SIZE="4096" TYPE="ext4" PARTUUID="..."</code></pre>
+    <p>Copy the <code>UUID=</code> value — <strong>not</strong> <code>PARTUUID</code>.</p>
+
+    <h3>8.2 Embed the Kernel Command Line</h3>
+    <p>Because there is no bootloader or <code>efibootmgr</code> entry to supply parameters, the command line is compiled into the kernel image via <code>CONFIG_CMDLINE</code>. The distribution kernel's build system picks up snippet files from <code>/etc/kernel/config.d/</code> automatically:</p>
+    <pre><code>mkdir -p /etc/kernel/config.d
+
+<span class="cm"># Replace YOUR-ROOT-UUID-HERE with the UUID from blkid above</span>
+cat > /etc/kernel/config.d/cmdline.config << 'EOF'
+CONFIG_CMDLINE="root=UUID=<span class="ph">YOUR-ROOT-UUID-HERE</span> rw"
+CONFIG_CMDLINE_BOOL=y
+EOF</code></pre>
+    <div class="callout callout-tip">
+      <span class="icon">💡</span>
+      <div>To add extra kernel parameters (e.g. quiet boot), append them inside the quotes after <code>rw</code>:<br>
+      <code>CONFIG_CMDLINE="root=UUID=... rw quiet loglevel=3"</code></div>
+    </div>
+
+    <h3>8.3 Configure installkernel USE Flags</h3>
+    <pre><code>mkdir -p /etc/portage/package.use
+echo "sys-kernel/installkernel efistub" > /etc/portage/package.use/installkernel</code></pre>
+
+    <h3>8.4 Emerge installkernel</h3>
+    <pre><code>emerge --ask sys-kernel/installkernel</code></pre>
+
+    <h3>8.5 Install Firmware</h3>
+    <pre><code>emerge --ask sys-kernel/linux-firmware</code></pre>
+    <div class="callout callout-note">
+      <span class="icon">ℹ</span>
+      <div><code>linux-firmware</code> supplies binary blobs for Wi-Fi adapters, GPUs, NVMe controllers, and other hardware that requires firmware at runtime. It is large but safe to install broadly.</div>
+    </div>
+
+    <h3>8.6 Install the Distribution Kernel</h3>
+    <pre><code>emerge --ask sys-kernel/gentoo-kernel</code></pre>
+    <p>This step:</p>
+    <ol style="padding-left:1.4rem; margin:0.5rem 0 0.8rem; line-height:2">
+      <li>Downloads the kernel sources.</li>
+      <li>Configures the kernel using Gentoo's maintained distribution config, merged with your snippets from <code>/etc/kernel/config.d/</code> (including the embedded command line from §8.2).</li>
+      <li>Compiles the kernel. This takes several minutes — longer on slower hardware.</li>
+      <li>Calls <code>installkernel</code> which, with the <code>efistub</code> USE flag, places the compiled image on the EFI partition (typically <code>/efi/EFI/Gentoo/bzImage.efi</code>).</li>
+    </ol>
+
+    <h3>8.7 Locate the Kernel on the EFI Partition</h3>
+    <pre><code>find /efi -name "*.efi" -o -name "vmlinuz*" -o -name "bzImage*"</code></pre>
+    <p>Expected output: <code>/efi/EFI/Gentoo/bzImage.efi</code></p>
+
+    <h3>8.8 Install to the UEFI Fallback Path</h3>
+    <p>Copy the kernel to the standard UEFI fallback location. All compliant UEFI firmware boots this path automatically with no boot entry required:</p>
+    <pre><code>mkdir -p /efi/EFI/BOOT
+
+<span class="cm"># Adjust source path if 'find' showed a different location above</span>
+cp /efi/EFI/Gentoo/bzImage.efi /efi/EFI/BOOT/BOOTX64.EFI
+
+ls -lh /efi/EFI/BOOT/BOOTX64.EFI   <span class="cm"># confirm file is in place</span></code></pre>
+
+    <h3>8.9 Verify the Setup</h3>
+    <pre><code><span class="cm"># Confirm the fallback image exists</span>
+ls /efi/EFI/BOOT/BOOTX64.EFI
+
+<span class="cm"># Confirm the UUID is embedded in the kernel image</span>
+strings /efi/EFI/BOOT/BOOTX64.EFI | grep "root=UUID"</code></pre>
+    <p>The second command should print your <code>root=UUID=...</code> command line. If it shows nothing, recheck <code>/etc/kernel/config.d/cmdline.config</code> and re-emerge the kernel.</p>
+    <div class="callout callout-tip">
+      <span class="icon">💡</span>
+      <div>No <code>efibootmgr</code> is needed. The firmware finds <code>BOOTX64.EFI</code> on its own. There are no boot entries to manage or recreate after kernel updates.</div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ SECTION 9 ══════════════════════ -->
+  <section id="s9">
+    <h2><span class="step-num">STEP 09</span>fstab Configuration (UUID-based)</h2>
+
+    <p>Using UUIDs in <code>/etc/fstab</code> is critical for systems with multiple drives — device names like <code>/dev/nvme0n1p3</code> can shift between boots if enumeration order changes. UUIDs never change.</p>
+
+    <h3>9.1 Get UUIDs for All Three Partitions</h3>
+    <pre><code>blkid</code></pre>
+    <p>Example output (your UUIDs will differ):</p>
+    <pre><code>/dev/nvme0n1p1: UUID="AAAA-BBBB" TYPE="vfat" ...
+/dev/nvme0n1p2: UUID="cccccccc-dddd-eeee-ffff-000000000000" TYPE="swap" ...
+/dev/nvme0n1p3: UUID="a1b2c3d4-e5f6-7890-abcd-ef1234567890" TYPE="ext4" ...</code></pre>
+
+    <h3>9.2 Write /etc/fstab</h3>
+    <pre><code>nano /etc/fstab</code></pre>
+    <div class="pre-label">/etc/fstab</div>
+    <pre><code><span class="cm"># &lt;filesystem&gt;                              &lt;mountpoint&gt;  &lt;type&gt;  &lt;options&gt;           &lt;dump&gt; &lt;pass&gt;</span>
+
+<span class="cm"># Root filesystem</span>
+UUID=<span class="ph">a1b2c3d4-e5f6-7890-abcd-ef1234567890</span>  /             ext4    defaults,noatime    0      1
+
+<span class="cm"># EFI System Partition</span>
+UUID=<span class="ph">AAAA-BBBB</span>                             /efi          vfat    defaults,noatime    0      2
+
+<span class="cm"># Swap</span>
+UUID=<span class="ph">cccccccc-dddd-eeee-ffff-000000000000</span>  none          swap    sw                  0      0</code></pre>
+
+    <div class="callout callout-note">
+      <span class="icon">ℹ</span>
+      <div>
+        <strong>Field notes:</strong><br>
+        <code>noatime</code> — skips access-timestamp updates on reads; improves SSD/NVMe performance and longevity.<br>
+        <code>dump</code> column: <code>0</code> = skip dump backup, <code>1</code> = include.<br>
+        <code>pass</code> column: <code>1</code> = root (checked first by fsck), <code>2</code> = others (checked after root), <code>0</code> = skip fsck.
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ SECTION 10 ══════════════════════ -->
+  <section id="s10">
+    <h2><span class="step-num">STEP 10</span>Networking &amp; OpenRC Services</h2>
+
+    <h3>10.1 Configure a Network Interface</h3>
+    <p>Find your interface name first:</p>
+    <pre><code>ip link</code></pre>
+
+    <h4>Wired with DHCP (netifrc)</h4>
+    <pre><code>cd /etc/init.d
+ln -s net.lo net.enp1s0              <span class="cm"># replace enp1s0 with your interface name</span>
+
+cat >> /etc/conf.d/net << 'EOF'
+config_enp1s0="dhcp"
+EOF
+
+rc-update add net.enp1s0 default</code></pre>
+
+    <h4>Wired with Static IP</h4>
+    <pre><code>cat >> /etc/conf.d/net << 'EOF'
+config_enp1s0="192.168.1.100/24"
+routes_enp1s0="default via 192.168.1.1"
+dns_servers_enp1s0="1.1.1.1 8.8.8.8"
+EOF</code></pre>
+
+    <h4>Alternative: dhcpcd (simpler)</h4>
+    <pre><code>emerge --ask net-misc/dhcpcd
+rc-update add dhcpcd default</code></pre>
+
+    <h3>10.2 Install Essential System Tools</h3>
+    <pre><code><span class="cm"># System logger</span>
+emerge --ask app-admin/sysklogd
+rc-update add sysklogd default
+
+<span class="cm"># Cron daemon</span>
+emerge --ask sys-process/cronie
+rc-update add cronie default
+
+<span class="cm"># ext4 filesystem tools</span>
+emerge --ask sys-fs/e2fsprogs
+
+<span class="cm"># NTP time sync</span>
+emerge --ask net-misc/chrony
+rc-update add chronyd default</code></pre>
+
+    <h3>10.3 Configure SSH (Optional)</h3>
+    <pre><code>rc-update add sshd default</code></pre>
+  </section>
+
+  <!-- ══════════════════════ SECTION 11 ══════════════════════ -->
+  <section id="s11">
+    <h2><span class="step-num">STEP 11</span>Users &amp; Final Steps</h2>
+
+    <h3>11.1 Set the Root Password <span class="improvement">handbook</span></h3>
+    <div class="callout callout-warn">
+      <span class="icon">⚠</span>
+      <div>The root password <strong>must</strong> be set before rebooting. Without it you will be locked out of the system.</div>
+    </div>
+    <pre><code>passwd</code></pre>
+
+    <h3>11.2 Add a Regular User</h3>
+    <pre><code>useradd -m -G users,wheel,audio,video,usb,portage -s /bin/bash <span class="ph">yourusername</span>
+passwd <span class="ph">yourusername</span></code></pre>
+
+    <h3>11.3 Install sudo</h3>
+    <pre><code>emerge --ask app-admin/sudo
+visudo   <span class="cm"># uncomment: %wheel ALL=(ALL) ALL</span></code></pre>
+
+    <h3>11.4 Install Useful Base Tools</h3>
+    <pre><code>emerge --ask \
+  app-misc/tmux \
+  app-editors/nano \
+  net-misc/wget \
+  app-arch/unzip \
+  sys-apps/pciutils \
+  sys-apps/usbutils \
+  net-wireless/iw \
+  net-wireless/wpa_supplicant</code></pre>
+
+    <h3>11.5 Rebuild Kernel Modules (If Needed)</h3>
+    <pre><code>emerge --ask @module-rebuild</code></pre>
+
+    <h3>11.6 Final Verification</h3>
+    <pre><code><span class="cm"># Confirm fallback kernel image is in place</span>
+ls -lh /efi/EFI/BOOT/BOOTX64.EFI
+strings /efi/EFI/BOOT/BOOTX64.EFI | grep "root=UUID"
+
+<span class="cm"># Confirm fstab UUIDs match blkid output</span>
+cat /etc/fstab
+blkid</code></pre>
+  </section>
+
+  <!-- ══════════════════════ SECTION 12 ══════════════════════ -->
+  <section id="s12">
+    <h2><span class="step-num">STEP 12</span>Reboot</h2>
+
+    <h3>12.1 Exit the Chroot and Unmount</h3>
+    <pre><code>exit   <span class="cm"># exit chroot</span>
+
+<span class="cm"># Unmount in reverse order</span>
+umount -l /mnt/gentoo/dev
+umount -l /mnt/gentoo/sys
+umount /mnt/gentoo/proc
+umount /mnt/gentoo/run
+umount /mnt/gentoo/efi
+umount /mnt/gentoo</code></pre>
+
+    <h3>12.2 Reboot</h3>
+    <pre><code>reboot</code></pre>
+    <p>Remove the USB drive when the machine restarts. The UEFI firmware will boot Gentoo automatically via <code>/EFI/BOOT/BOOTX64.EFI</code> on the EFI partition.</p>
+
+    <h3>12.3 First Boot Checklist</h3>
+    <ul class="checklist">
+      <li>Log in as root (or your regular user if SSH is configured)</li>
+      <li>Verify networking: <code>ping -c 3 gentoo.org</code></li>
+      <li>Check running services: <code>rc-status</code></li>
+      <li>Confirm the correct kernel: <code>uname -r</code></li>
+      <li>Update the system: <code>emerge --sync &amp;&amp; emerge --ask --update --deep --newuse @world</code></li>
+      <li>Check for Portage news: <code>eselect news list &amp;&amp; eselect news read</code></li>
+    </ul>
+  </section>
+
+  <hr>
+
+  <!-- ══════════════════════ APPENDIX A ══════════════════════ -->
+  <section id="appA">
+    <h2><span class="step-num">APPENDIX A</span>Troubleshooting</h2>
+
+    <h3>System Does Not Boot</h3>
+    <p>Boot back into the Gentoo live USB, re-mount, and chroot back in:</p>
+    <pre><code>swapon /dev/nvme0n1p2
+mount /dev/nvme0n1p3 /mnt/gentoo
+mount /dev/nvme0n1p1 /mnt/gentoo/efi
+mount --types proc /proc /mnt/gentoo/proc
+mount --rbind /sys /mnt/gentoo/sys && mount --make-rslave /mnt/gentoo/sys
+mount --rbind /dev /mnt/gentoo/dev && mount --make-rslave /mnt/gentoo/dev
+mount --bind /run /mnt/gentoo/run && mount --make-slave /mnt/gentoo/run
+cp --dereference /etc/resolv.conf /mnt/gentoo/etc/
+chroot /mnt/gentoo /bin/bash
+source /etc/profile && export PS1="(chroot) ${PS1}"
+mount /dev/nvme0n1p1 /efi</code></pre>
+    <p>Then diagnose:</p>
+    <pre><code><span class="cm"># 1. Is the fallback image present?</span>
+ls -lh /efi/EFI/BOOT/BOOTX64.EFI
+
+<span class="cm"># 2. Is the UUID embedded correctly?</span>
+strings /efi/EFI/BOOT/BOOTX64.EFI | grep "root=UUID"
+
+<span class="cm"># 3. If missing, re-copy:</span>
+cp /efi/EFI/Gentoo/bzImage.efi /efi/EFI/BOOT/BOOTX64.EFI
+
+<span class="cm"># 4. If UUID is wrong, fix the config and re-emerge:</span>
+nano /etc/kernel/config.d/cmdline.config
+emerge sys-kernel/gentoo-kernel
+cp /efi/EFI/Gentoo/bzImage.efi /efi/EFI/BOOT/BOOTX64.EFI</code></pre>
+
+    <h3>Kernel Panic: Unable to Mount Root Filesystem</h3>
+    <p>The root UUID compiled into the kernel is wrong. Boot from USB, chroot in, run <code>blkid /dev/nvme0n1p3</code>, correct <code>/etc/kernel/config.d/cmdline.config</code>, then re-emerge and re-copy:</p>
+    <pre><code>emerge sys-kernel/gentoo-kernel
+cp /efi/EFI/Gentoo/bzImage.efi /efi/EFI/BOOT/BOOTX64.EFI</code></pre>
+
+    <h3>No Network After First Boot</h3>
+    <pre><code>ip link                   <span class="cm"># find your actual interface name</span>
+ls /etc/init.d/net.*      <span class="cm"># check which symlinks exist</span>
+
+<span class="cm"># If the symlink for your interface is missing:</span>
+cd /etc/init.d
+ln -s net.lo net.<span class="ph">&lt;your-interface&gt;</span>
+rc-update add net.<span class="ph">&lt;your-interface&gt;</span> default
+rc-service net.<span class="ph">&lt;your-interface&gt;</span> start</code></pre>
+  </section>
+
+  <!-- ══════════════════════ APPENDIX B ══════════════════════ -->
+  <section id="appB">
+    <h2><span class="step-num">APPENDIX B</span>OpenRC Quick Reference</h2>
+    <div class="callout callout-note">
+      <span class="icon">ℹ</span>
+      <div>There is no <code>systemctl</code> in an OpenRC system. All service management uses <code>rc-service</code> and <code>rc-update</code>.</div>
+    </div>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Task</th><th>Command</th></tr></thead>
+      <tbody>
+        <tr><td>Start a service</td><td><code>rc-service &lt;name&gt; start</code></td></tr>
+        <tr><td>Stop a service</td><td><code>rc-service &lt;name&gt; stop</code></td></tr>
+        <tr><td>Restart a service</td><td><code>rc-service &lt;name&gt; restart</code></td></tr>
+        <tr><td>Enable on boot (default runlevel)</td><td><code>rc-update add &lt;name&gt; default</code></td></tr>
+        <tr><td>Disable on boot</td><td><code>rc-update del &lt;name&gt; default</code></td></tr>
+        <tr><td>List all services and status</td><td><code>rc-status</code></td></tr>
+        <tr><td>List services in a runlevel</td><td><code>rc-update show</code></td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ APPENDIX C ══════════════════════ -->
+  <section id="appC">
+    <h2><span class="step-num">APPENDIX C</span>Updating the Kernel</h2>
+    <p>With the UEFI fallback boot path approach, kernel updates require only a single <code>cp</code> after the emerge. No boot entries, no filename tracking.</p>
+    <pre><code><span class="cm"># Sync and upgrade the full system</span>
+emerge --sync
+emerge --ask --update --deep --newuse @world
+
+<span class="cm"># Or upgrade just the kernel</span>
+emerge --ask sys-kernel/gentoo-kernel
+
+<span class="cm"># Copy the new kernel to the fallback path — this is the only required step</span>
+cp /efi/EFI/Gentoo/bzImage.efi /efi/EFI/BOOT/BOOTX64.EFI
+
+<span class="cm"># Verify</span>
+ls -lh /efi/EFI/BOOT/BOOTX64.EFI
+strings /efi/EFI/BOOT/BOOTX64.EFI | grep "root=UUID"
+
+<span class="cm"># Clean up old versions</span>
+emerge --ask --depclean</code></pre>
+    <div class="callout callout-note">
+      <span class="icon">ℹ</span>
+      <div>The <code>cp</code> is the only manual step after each update. The embedded UUID and command line in <code>/etc/kernel/config.d/cmdline.config</code> remain correct across kernel versions unless you repartition your drive.</div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Guide written for Gentoo AMD64 · OpenRC · EFI Stub (UEFI fallback) · NVMe. For the authoritative reference see the <a href="https://wiki.gentoo.org/wiki/Handbook:AMD64">Gentoo AMD64 Handbook</a>.</p>
+  </footer>
+
+</main>
+
+<script>
+  // Highlight the active sidebar link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('#sidebar nav a');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const active = document.querySelector(`#sidebar nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
